@@ -12,7 +12,7 @@ import sys
 import os
 import csv
 import glob
-import cPickle as pickle
+import pickle as pickle
 import zipfile
 import math
 import hashlib
@@ -22,8 +22,8 @@ import shutil
 from collections import defaultdict
 
 # Local
-import core
-from utilities import *
+from . import core
+from .utilities import *
 
 # Shortcuts
 pi = math.pi
@@ -135,7 +135,7 @@ class Scenario(object):
         if 'blob' in blue_init:
             blue_init['blob'].close()
         self.after_game(game)
-        print game.stats
+        print(game.stats)
         return (matchinfo, game.stats, game.replay, game.log)
 
     def _match(self, red, blue, output_folder, rendered, verbose):
@@ -186,12 +186,12 @@ class Scenario(object):
         try:
             from multiprocessing import Pool, cpu_count
             threads = max(1, cpu_count() - 1)
-            print "Using %d threads to run games." % (threads)
+            print("Using %d threads to run games." % (threads))
             pool = Pool(threads)
             gameinfos = pool.map(callfunc, calls)
         except ImportError:
-            print "No multithreading available, running on single CPU."
-            gameinfos = map(callfunc, calls)
+            print("No multithreading available, running on single CPU.")
+            gameinfos = list(map(callfunc, calls))
 
         gameinfos = [gameinfo for l in gameinfos for gameinfo in l]
         if output_folder is not None:
@@ -209,7 +209,7 @@ class Scenario(object):
         fieldnames = ('red_file', 'blue_file', 'score_red', 'score_blue', 'score', 
                       'weight', 'points_red', 'points_blue', 'steps', 'ammo_red', 'ammo_blue')
         csvf = csv.DictWriter(open(os.path.join(output_folder, 'games.csv'),'w'), fieldnames, extrasaction='ignore')
-        csvf.writerow(dict(zip(fieldnames, fieldnames)))
+        csvf.writerow(dict(list(zip(fieldnames, fieldnames))))
 
         # Open other files
         zipf = zipfile.ZipFile(os.path.join(output_folder, 'replays.zip'),'w', zipfile.ZIP_DEFLATED, True)
@@ -261,7 +261,7 @@ class Scenario(object):
         
         # Put the matches into a matchup matrix (team a on left, team b on top)
         matrix = defaultdict(lambda: defaultdict(lambda: None))
-        for (a, b), (points) in by_match.items():
+        for (a, b), (points) in list(by_match.items()):
             matrix[a][b] = points
         order = sorted(by_team.keys())
         table = [] #[[for _ in range(len(order)+1)] for _ in range(len(order))]
@@ -269,10 +269,10 @@ class Scenario(object):
             table.append([left] + [matrix[left][top] for top in order[1:]])
         
         # Final ranking
-        ranking = sorted(by_team.items(), key=lambda x: x[1], reverse=True)
+        ranking = sorted(list(by_team.items()), key=lambda x: x[1], reverse=True)
         
         # Write to output
-        sf.write(markdown_table([(r,b,pr,pb) for ((r,b),(pr,pb)) in by_color.items()], header=['Red','Blue','R','B']))
+        sf.write(markdown_table([(r,b,pr,pb) for ((r,b),(pr,pb)) in list(by_color.items())], header=['Red','Blue','R','B']))
         sf.write('\n')
         sf.write(markdown_table(table, header=['']+order[1:]))
         sf.write('\n')
@@ -315,7 +315,7 @@ class Scenario(object):
             :param output_folder: Folder in which results will be stored.
         """
         if os.path.exists(output_folder):
-            print "WARNING: Output directory exists; overwriting results"
+            print("WARNING: Output directory exists; overwriting results")
         else:
             os.makedirs(output_folder)
         

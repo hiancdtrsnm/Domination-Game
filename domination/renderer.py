@@ -19,7 +19,7 @@ import math
 import pygame as pg
 
 # Local
-from utilities import *
+from .utilities import *
 
 # Shortcuts
 pi         = math.pi
@@ -94,8 +94,8 @@ class Renderer(object):
             "cp_neutral":self.load_texture("cp-neutral.png",skin),
             "spawn_red":self.load_texture("spawn-red.png",skin),
             "spawn_blue":self.load_texture("spawn-blue.png",skin),
-            "muzzle":[self.load_texture("muzzle.png",skin).subsurface(i*32,0,32,32) for i in xrange(10)],
-            "explode":[self.load_texture("explode.png",skin).subsurface(i*12,0,12,12) for i in xrange(10)],
+            "muzzle":[self.load_texture("muzzle.png",skin).subsurface(i*32,0,32,32) for i in range(10)],
+            "explode":[self.load_texture("explode.png",skin).subsurface(i*12,0,12,12) for i in range(10)],
             "ammo_empty":self.load_texture("ammo-empty.png",skin),
             "ammo_full":self.load_texture("ammo-full.png",skin),
             "crumb":self.load_texture("crumb.png",skin),
@@ -345,8 +345,8 @@ def tile_fill(surface, bitmap, rect=None, area=None):
     """
     sx,sy,sw,sh = rect if rect is not None else surface.get_rect()
     bx,by,bw,bh = area if area is not None else bitmap.get_rect()
-    for x in xrange(sx, sx+sw, bw):
-        for y in xrange(sy, sy+sh, bh):
+    for x in range(sx, sx+sw, bw):
+        for y in range(sy, sy+sh, bh):
             a = (bx,by,min(bw, sx+sw-x),min(bh, sy+sh-y))
             surface.blit(bitmap, dest=(x,y), area=a)
 
@@ -371,5 +371,5 @@ def draw_tilemap(surface, tiles, graphic, tilesize):
                 surface.blit(pg.transform.scale(graphic.subsurface(idx*s,0,s,s),(tilesize,tilesize)),(j*tilesize,i*tilesize))
 
 if __name__ == "__main__":
-    import core
+    from . import core
     core.Game(core.DEFAULT_AGENT_FILE,core.DEFAULT_AGENT_FILE, rendered=True).run()

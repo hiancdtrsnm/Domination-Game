@@ -17,7 +17,7 @@ sys.path.append(os.path.split(__file__)[0])
 def run_replay(path, rendered=True):
     openfile = gzip.open(path, 'rb') if path.endswith('.gz') else open(path, 'rb')
     g = domination.core.Game(replay=pickle.load(openfile), rendered=rendered).run()
-    print g.stats
+    print(g.stats)
 
 
 if __name__ == '__main__':

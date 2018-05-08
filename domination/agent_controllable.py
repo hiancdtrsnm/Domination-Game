@@ -20,8 +20,8 @@ class Agent(object):
         
         # Read the binary blob, we're not using it though
         if blob is not None:
-            print "Agent %s received binary blob of %s" % (
-               self.callsign, type(pickle.loads(blob.read())))
+            print("Agent %s received binary blob of %s" % (
+               self.callsign, type(pickle.loads(blob.read()))))
             # Reset the file so other agents can read it.
             blob.seek(0) 
         
@@ -133,6 +133,6 @@ class Agent(object):
         pass
         
 if __name__ == "__main__":
-    import core
+    from . import core
     core.Game('agent_controllable.py', 'agent.py').run()
     

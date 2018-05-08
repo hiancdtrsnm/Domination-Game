@@ -25,8 +25,8 @@ class Agent(object):
             # Remember the blob path so we can write back to it
             self.blobpath = blob.name
             self.blobcontent = pickle.loads(blob.read())
-            print "Agent %s received binary blob of %s" % (
-               self.callsign, type(self.blobcontent))
+            print("Agent %s received binary blob of %s" % (
+               self.callsign, type(self.blobcontent)))
             # Reset the file so other agents can read it too.
             blob.seek(0) 
         
@@ -46,7 +46,7 @@ class Agent(object):
         self.selected = observation.selected
 
         if observation.selected:
-            print observation
+            print(observation)
                     
     def action(self):
         """ This function is called every step and should
@@ -58,7 +58,7 @@ class Agent(object):
             self.goal = None
             
         # Walk to ammo
-        ammopacks = filter(lambda x: x[2] == "Ammo", obs.objects)
+        ammopacks = [x for x in obs.objects if x[2] == "Ammo"]
         if ammopacks:
             self.goal = ammopacks[0][0:2]
             
@@ -128,4 +128,4 @@ class Agent(object):
             except:
                 # We can't write to the blob, this is normal on AppEngine since
                 # we don't have filesystem access there.        
-                print "Agent %s can't write blob." % self.callsign
+                print("Agent %s can't write blob." % self.callsign)

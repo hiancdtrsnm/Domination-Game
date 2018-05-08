@@ -26,15 +26,15 @@ import bisect
 import hashlib
 import logging
 from pprint import pprint
-import cPickle as pickle
+import pickle as pickle
 try:
     import numpy
 except ImportError:
     pass
 
 # Local
-from utilities import *
-from libs import *
+from .utilities import *
+from .libs import *
 
 # Shortcuts
 sqrt = math.sqrt
@@ -157,7 +157,7 @@ class GameLog(object):
     def write(self, string):
         if self.verbose and string != '\n':
             try:
-                print >> sys.__stdout__, string
+                print(string, file=sys.__stdout__)
             except:
                 pass
         self.log.append(string)
@@ -188,7 +188,7 @@ class Team(object):
         if brain is None:
             self.brain_string = ''
             self.name_external = name
-        elif type(brain) == file:
+        elif isinstance(brain, type(sys.stdout)):
             brain.seek(0)
             self.brain_string = brain.read()
             self.name_external = os.path.basename(brain.name)
@@ -317,7 +317,7 @@ class Game(object):
         # Load up a replay
         else:
             if replay.version != __version__:
-                print >> sys.stderr, ("WARNING: Replay is for version %s, you have %s."%(replay.version, __version__))
+                print(("WARNING: Replay is for version %s, you have %s."%(replay.version, __version__)), file=sys.stderr)
             self.settings = replay.settings
             self.field = replay.field
             self.red.setname(replay.red_name)
@@ -340,19 +340,19 @@ class Game(object):
         else:
             try:
                 return method(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 if team == TEAM_RED:
                     self.red.raised_exception = True
                 else:
                     self.blue.raised_exception = True
-                print "\n%s raised exception in < %s() >" % ('RED' if team == TEAM_RED else 'BLU', method.__name__)
-                print '-' * 60
+                print("\n%s raised exception in < %s() >" % ('RED' if team == TEAM_RED else 'BLU', method.__name__))
+                print('-' * 60)
                 traceback.print_exc(file=sys.stdout)
-                print '-' * 60
+                print('-' * 60)
                 return default
             
     def add_renderer(self, **kwargs):
-        import renderer
+        from . import renderer
         globals()['renderer'] = renderer
         self.renderer = renderer.Renderer(self, **kwargs)
         
@@ -363,10 +363,10 @@ class Game(object):
         self.old_stdout = sys.stdout
         sys.stdout = self.log
         # Print version
-        print "Domination Game Ver. %s"%__version__
+        print("Domination Game Ver. %s"%__version__)
         # Read agent brains (from string or file)
         
-        print "Playing `%s` vs. `%s`"%(self.red.fullname(), self.blue.fullname())
+        print("Playing `%s` vs. `%s`"%(self.red.fullname(), self.blue.fullname()))
         
         self.random = random.Random()
         self.random.seed(RANDOMSEED)
@@ -405,7 +405,7 @@ class Game(object):
             self._add_object(o)
         self.controlpoints = cps
         # Initialize tanks
-        print "Initializing agents."
+        print("Initializing agents.")
         if self.record or self.replay is None:
             # Initialize new tanks with brains
             brain_kwargs = {'settings': self.settings}
@@ -455,10 +455,10 @@ class Game(object):
         ## MAIN GAME LOOP
         self.state = Game.STATE_RUNNING
         try:
-            for s in xrange(settings.max_steps):
+            for s in range(settings.max_steps):
                 self.step = s+1
                 if self.step % 10 == 0:
-                    print "Step %d: %d - %d"%(self.step, self.score_red, self.score_blue)
+                    print("Step %d: %d - %d"%(self.step, self.score_red, self.score_blue))
                 if self.step_callback is not None:
                     self.step_callback(self)
                 ## UPDATE & CHECK VICTORY
@@ -516,11 +516,11 @@ class Game(object):
                             o._da = (o.angle - o._a) / renderer.ROTATION_FRAMES
                 # Render rotation/shooting
                 if render:
-                    for _ in xrange(renderer.ROTATION_FRAMES):
+                    for _ in range(renderer.ROTATION_FRAMES):
                         for o in self.objects:
                             o._a += o._da
                         self.renderer.render(self)
-                    for f in xrange(renderer.SHOOTING_FRAMES):
+                    for f in range(renderer.SHOOTING_FRAMES):
                         self.renderer.render(self, shooting_frame = f)
                 
                 # Reset tanks that got shot
@@ -538,7 +538,7 @@ class Game(object):
                 
                 # Simulate/Render movement
                 self.sim_time = 0.0
-                for step in xrange(res):
+                for step in range(res):
                     p = time.clock()
                     # Perform one physics substep
                     self._substep()
@@ -565,14 +565,14 @@ class Game(object):
         if self.renderer is not None:
             self.renderer.quit()
         if interrupted:
-            print "Game was interrupted."
+            print("Game was interrupted.")
             self.interrupted = True
         self.state = Game.STATE_ENDED
         self.stats.score_red = self.score_red
         self.stats.score_blue = self.score_blue
         self.stats.score = self.score_red / float(self.score_red + self.score_blue)
         self.stats.steps = self.step
-        print self.stats
+        print(self.stats)
         if self.record:
             self.replay.settings = copy.copy(self.settings)
             self.replay.field = self.field
@@ -676,7 +676,7 @@ class Game(object):
     def _add_object(self,o):
         """ Add an object to the game and collision list. """
         o.game = self
-        o.uid = hashlib.md5(str(self.object_uid)).digest()
+        o.uid = hashlib.md5(str(self.object_uid).encode()).digest()
         self.object_uid += 1
         self.objects.append(o)
         if o.physical:
@@ -842,10 +842,11 @@ class Game(object):
         hits.sort(key=lambda h: h[0])
         return hits
     
-    def _click(self, (x,y), shift):
+    def _click(self, xxx_todo_changeme, shift):
         """ Tells the game that the right-mouse button was clicked
             somewhere on the field.
         """
+        (x,y) = xxx_todo_changeme
         for t in self.tanks:
             t.send_click((x, y, shift, t.selected))
     
@@ -917,7 +918,7 @@ class Field(object):
         m         = [Field.WALL] + [Field.CLEAR] * (self.width - 2) + [Field.WALL]
         b         = [Field.WALL] * self.width
         # Stack top + middle + bottom
-        self.tiles = [t] + [m[:] for _ in xrange(self.height-2)] + [b]
+        self.tiles = [t] + [m[:] for _ in range(self.height-2)] + [b]
         
         self._unpacked = None
     
@@ -972,8 +973,8 @@ class Field(object):
         else:
             matches = lambda x: x in match
         found = []
-        for i in xrange(bounds[1], bounds[3]):
-            for j in xrange(bounds[0], bounds[2]):
+        for i in range(bounds[1], bounds[3]):
+            for j in range(bounds[0], bounds[2]):
                 if matches(self.tiles[i][j]) and (mask is None or mask[i][j]):
                     found.append((j,i))
         return found
@@ -1182,7 +1183,7 @@ class FieldGenerator(object):
         # Spawn regions
         spawn_h = int(sqrt(max(self.num_red, self.num_blue)) + 0.5) # height of the spawn block
         spawn_y = random.randint(1, self.height - 2 - spawn_h)      # y-pos of the spawn block
-        for i in xrange(max(self.num_red, self.num_blue)):
+        for i in range(max(self.num_red, self.num_blue)):
             if i < self.num_red:
                 x = 1 + i // spawn_h
                 y = spawn_y + i%spawn_h
@@ -1234,8 +1235,8 @@ class FieldGenerator(object):
         
         # Clear walls under controlpoints
         for (x, y) in field.find(Field.CONTROL):
-            for _y in xrange(y-1,y+2):
-                for _x in xrange(x-1,x+2):
+            for _y in range(y-1,y+2):
+                for _x in range(x-1,x+2):
                     field.set((_x,_y), Field.CLEAR, match=Field.WALL)
         
         ## ITEMS
@@ -1307,6 +1308,9 @@ class GameObject(object):
     
     def __cmp__(self, other):
         raise Exception("no sorting")
+
+    def __hash__(self):
+        return hash(self.uid)
     
         
 ## Gameobject Subclasses
@@ -1348,7 +1352,7 @@ class Tank(GameObject):
         # Initialize observation
         self.observation = Observation()
         gridrng = (self.game.settings.max_see/2+1)//game.field.tilesize
-        self.observation.walls = [[0 for _ in xrange(gridrng*2+1)] for _ in xrange(gridrng*2+1)]
+        self.observation.walls = [[0 for _ in range(int(gridrng*2+1))] for _ in range(int(gridrng*2+1))]
         # Adjust settings for vacubot
         if game.settings.agent_type == 'vacubot':
             self.width = self.height = self.SIZE_VACUBOT
@@ -1404,8 +1408,8 @@ class Tank(GameObject):
         if xj != self.grid_x or yi != self.grid_y:
             gridrng = (rng/2+1)//f.tilesize
             w,h = f.width, f.height
-            for oi,i in enumerate(xrange(yi-gridrng, yi+gridrng+1)):
-                for oj,j in enumerate(xrange(xj-gridrng, xj+gridrng+1)):
+            for oi,i in enumerate(range(int(yi-gridrng), int(yi+gridrng+1))):
+                for oj,j in enumerate(range(int(xj-gridrng), int(xj+gridrng+1))):
                     if (i >= 0 and j >= 0 and i < h and j < w and
                         f.wallgrid[i][j] == 0):
                         obs.walls[oi][oj] = 0
@@ -1439,7 +1443,7 @@ class Tank(GameObject):
             # Ignore action (NO-OP) if agent thought too long.
             if self.time_thought > self.game.settings.think_time:
                 (turn, speed, shoot) = (0,0,False)
-                print '[Game]: Agent %s-%d timed out (%.3fs).'%('RED'if self.team==0 else 'BLU',self.id,self.time_thought)
+                print('[Game]: Agent %s-%d timed out (%.3fs).'%('RED'if self.team==0 else 'BLU',self.id,self.time_thought))
             if self.record:
                 self.actions.append((turn,speed,shoot))
             if self.game.renderer is not None and self.game.renderer.active_team == self.team:
@@ -1570,7 +1574,7 @@ class Fountain(GameObject):
         self.initialized = False
         
     def added_to_game(self, game):
-        for _ in xrange(self.MIN_CHILDREN):
+        for _ in range(self.MIN_CHILDREN):
             self.spawn_one()
         
     def update(self):

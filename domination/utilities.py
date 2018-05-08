@@ -11,10 +11,11 @@ import time
 import copy
 from pprint import pprint
 from heapq import heappush, heappop
-from sys import maxint
+from sys import maxsize
 
 # Local libs
-from libs import astar
+from .libs import astar
+from functools import reduce
 
 
 # Shortcuts
@@ -48,7 +49,7 @@ def frange(limit1, limit2 = None, increment = 1.):
     else:
         limit1 = float(limit1)
     count = int(math.ceil((limit2 - limit1)/increment))
-    return (limit1 + n*increment for n in xrange(count))
+    return (limit1 + n*increment for n in range(count))
     
 def mean(iterable):
     """ Returns mean of given list or generator."""
@@ -112,7 +113,7 @@ def line_intersects_rect(p0, p1, r):
     q0x,q0y = p1
     t0,t1  = 0.0, 1.0
     dx, dy = p1[0] - p0[0], p1[1] - p0[1]
-    for edge in xrange(4):
+    for edge in range(4):
         if edge == 0:
             p,q = -dx, -(l-p0x)
         elif edge == 1:
@@ -139,7 +140,7 @@ def line_intersects_rect(p0, p1, r):
     # Return (two) intersection coords
     return ((t0, (p0x + t0*dx, p0y + t0*dy)), (t1, (p0x + t1*dx, p0y + t1*dy)))
     
-def line_intersects_circ((p0x,p0y), (p1x,p1y), (cx,cy), r):
+def line_intersects_circ(xxx_todo_changeme2, xxx_todo_changeme3, xxx_todo_changeme4, r):
     """ Computes intersections between line and circle. The line
         runs between (p0x,p0y) and (p1x,p1y) and the circle
         is centered at (cx,cy) with a radius r.
@@ -159,6 +160,9 @@ def line_intersects_circ((p0x,p0y), (p1x,p1y), (cx,cy), r):
         >>> line_intersects_circ((0,0), (0,1), (2,0), 1)
         False
     """
+    (p0x,p0y) = xxx_todo_changeme2
+    (p1x,p1y) = xxx_todo_changeme3
+    (cx,cy) = xxx_todo_changeme4
     dx, dy = p1x-p0x, p1y-p0y
     fx, fy = p0x-cx, p0y-cy
     
@@ -188,7 +192,7 @@ def line_intersects_circ((p0x,p0y), (p1x,p1y), (cx,cy), r):
         
         # // use t2 for second point
 
-def line_intersects_grid((x0,y0), (x1,y1), grid, grid_cell_size=1):
+def line_intersects_grid(xxx_todo_changeme5, xxx_todo_changeme6, grid, grid_cell_size=1):
     """ Performs a line/grid intersection, finding the "super cover"
         of a line and seeing if any of the grid cells are occupied.
         The line runs between (x0,y0) and (x1,y1), and (0,0) is the
@@ -200,6 +204,8 @@ def line_intersects_grid((x0,y0), (x1,y1), grid, grid_cell_size=1):
         >>> line_intersects_grid((0,0),(0.99,2),[[0,0,0],[0,1,0],[0,0,0]])
         False
     """
+    (x0,y0) = xxx_todo_changeme5
+    (x1,y1) = xxx_todo_changeme6
     grid_cell_size = float(grid_cell_size)
     x0 = x0 / grid_cell_size
     x1 = x1 / grid_cell_size
@@ -286,7 +292,9 @@ def rects_bound(rects):
         >>> rects_bound([(0,0,1,1), (3,3,1,1)])
         (0, 0, 4, 4)
     """
-    def rb((ax,ay,aw,ah), (bx,by,bw,bh)):
+    def rb(xxx_todo_changeme, xxx_todo_changeme1):
+        (ax,ay,aw,ah) = xxx_todo_changeme
+        (bx,by,bw,bh) = xxx_todo_changeme1
         x = min(ax, bx)
         y = min(ay, by)
         w = max(ax+aw, bx+bw) - x
@@ -342,7 +350,7 @@ def angle_fix(theta):
 
 ### NAVIGATION ###
 
-def reachable(grid, (x, y), border=1):
+def reachable(grid, xxx_todo_changeme7, border=1):
     """ Performs a 'flood fill' operation to find
         reachable areas on given tile map from (x,y). 
         Returns as binary grid with 1 for reachable.
@@ -353,6 +361,7 @@ def reachable(grid, (x, y), border=1):
         >>> reachable([[0,1,0],[0,1,0]], (0,0))
         [[1, 0, 0], [1, 0, 0]]
     """
+    (x, y) = xxx_todo_changeme7
     w,h = len(grid[0]), len(grid)
     reachability = [[0 for _ in range(w)] for _ in range(h)]
     edge = [(x, y)]
@@ -369,8 +378,10 @@ def reachable(grid, (x, y), border=1):
         edge = newedge
     return reachability
     
-def grid_path_length((x,y),(gx,gy),g):
+def grid_path_length(xxx_todo_changeme8, xxx_todo_changeme9,g):
     #Path list (current coords, cost, expected cost)
+    (x,y) = xxx_todo_changeme8
+    (gx,gy) = xxx_todo_changeme9
     p = [((x,y),0,abs(gx-x)+abs(gy-y))]
     #Nodes visited
     h = []
@@ -426,7 +437,7 @@ def make_nav_mesh(walls, bounds=None, offset=7, simplify=0.001, add_points=[]):
     for w in walls:
         for point in rect_corners(w):
     # 2) Remove points that are inside of other walls (or outside bounds)
-            other_walls = filter(lambda x: x!=w,walls)
+            other_walls = [x for x in walls if x!=w]
             if (rect_contains_point(bounds, point) and 
                 not any(rect_contains_point(ow, point) for ow in other_walls)):
                 nodes.add((int(point[0]),int(point[1])))
@@ -441,7 +452,7 @@ def make_nav_mesh(walls, bounds=None, offset=7, simplify=0.001, add_points=[]):
     # 4) Remove direct connections that are not much shorter than indirect ones
     def astar_path_length(m, start, end):
         """ Length of a path from start to end """
-        neighbours = lambda n: m[n].keys()
+        neighbours = lambda n: list(m[n].keys())
         cost       = lambda n1, n2: m[n1][n2]
         goal       = lambda n: n == end
         heuristic  = lambda n: point_dist(end, n)
@@ -484,7 +495,7 @@ def find_path(start, end, mesh, grid, tilesize=16):
         for n, dst in endconns:
             mesh[n][end] = dst
     
-    neighbours = lambda n: mesh[n].keys()
+    neighbours = lambda n: list(mesh[n].keys())
     cost       = lambda n1, n2: mesh[n1][n2]
     goal       = lambda n: n == end
     heuristic  = lambda n: ((n[0]-end[0]) ** 2 + (n[1]-end[1]) ** 2) ** 0.5

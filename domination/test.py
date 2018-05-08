@@ -12,12 +12,12 @@ import os
 import unittest
 import shutil
 import tempfile
-import cPickle as pickle
+import pickle as pickle
 
 # Local Imports
-import core
+from . import core
 import tournament
-from utilities import *
+from .utilities import *
 
 ### CONSTANTS
 
@@ -98,7 +98,7 @@ class TestDominationGame(unittest.TestCase):
         s = str(f)
         f2 = core.Field.from_string(s)
         self.assertEqual(f, f2)
-        for i in xrange(1000):
+        for i in range(1000):
             f = core.FieldGenerator(num_points=3, num_ammo=6).generate()
             self.assertEqual(len(f.find(core.Field.CONTROL)), 3)
             self.assertEqual(len(f.find(core.Field.AMMO)), 6)
