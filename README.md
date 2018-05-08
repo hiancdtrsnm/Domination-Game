@@ -1,3 +1,5 @@
+# This is a port of the Game to python3 (It's only partially tested)
+
 Domination Game
 ===============
 
