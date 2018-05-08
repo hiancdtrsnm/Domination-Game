@@ -22,7 +22,7 @@
 
 
 from heapq import heappush, heappop
-from sys import maxint
+from sys import maxsize
 
 # Shortcuts
 try:
@@ -35,10 +35,10 @@ except ValueError:
 # second, definite tie-breaker. Store the redundant g for fast and accurate
 # calculations.
 
-F, H, NUM, G, POS, OPEN, VALID, PARENT = xrange(8)
+F, H, NUM, G, POS, OPEN, VALID, PARENT = range(8)
 
 
-def astar(start_pos, neighbors, goal, start_g, cost, heuristic, limit=maxint,
+def astar(start_pos, neighbors, goal, start_g, cost, heuristic, limit=maxsize,
           debug=None):
 
     """Find the shortest path from start to goal.
@@ -65,9 +65,9 @@ def astar(start_pos, neighbors, goal, start_g, cost, heuristic, limit=maxint,
     """
 
     # Create the start node.
-    nums = iter(xrange(maxint))
+    nums = iter(range(maxsize))
     start_h = heuristic(start_pos)
-    start = [start_g + start_h, start_h, nums.next(), start_g, start_pos, True,
+    start = [start_g + start_h, start_h, next(nums), start_g, start_pos, True,
              True, None]
 
     # Track all nodes seen so far.
@@ -102,7 +102,7 @@ def astar(start_pos, neighbors, goal, start_g, cost, heuristic, limit=maxint,
 
                 # We have found a new node.
                 neighbor_h = heuristic(neighbor_pos)
-                neighbor = [neighbor_g + neighbor_h, neighbor_h, nums.next(),
+                neighbor = [neighbor_g + neighbor_h, neighbor_h, next(nums),
                             neighbor_g, neighbor_pos, True, True, current[POS]]
                 nodes[neighbor_pos] = neighbor
                 heappush(heap, neighbor)
@@ -124,7 +124,7 @@ def astar(start_pos, neighbors, goal, start_g, cost, heuristic, limit=maxint,
                     neighbor[VALID] = False
                     nodes[neighbor_pos] = neighbor = neighbor[:]
                     neighbor[F] = neighbor_g + neighbor[H]
-                    neighbor[NUM] = nums.next()
+                    neighbor[NUM] = next(nums)
                     neighbor[G] = neighbor_g
                     neighbor[VALID] = True
                     neighbor[PARENT] = current[POS]
