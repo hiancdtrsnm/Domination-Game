@@ -1,26 +1,48 @@
-# This is a port of the Game to python3 (It's only partially tested)
 
-Domination Game
-===============
+# Domination-Game
 
-#### Version 1.6.2
+Para simulación se implementaron varios objetivos
+que podían seguir los agentes y de las interacciones
+y formas de ordenar las prioridades se implementaron varios
+agentes. Estas acciones son:
 
-A simulation engine for a multi-agent competitive game. It is meant as an easy experimentation and evaluation
-environment for learning about cooperative and competitive autonomous systems. It is:
-
-- **Easy**: written in pure python without dependencies makes sure the code is easy to run
-            out-of-the-box and on all platforms. Additionally, the code has a simple API and
-            sensible usage.
-- **Fast**: the code does not rely on the rendering engine to run simulations, and the collision solver
-            is written to be quite fast, leaving plenty of time for agents to think
-- **Fair**: the default game rules are tweaked so that it is easy to evaluate the relative skill of agents,
-            without too much randomness.
-
-Please refer to the http://domination-game.rtfd.org/ for information on using this framework.
-
-![Screenshot of the Domination Game](https://github.com/noio/Domination-Game/raw/master/screenshot.png)
-
-The original concept for the game was developed by Okke Formsma and Arno Veenstra, this 
-new version of the framework was developed by Thomas van den Berg and Tim Doolan.
+* Atacar (requiere munición) (requiere un enemigo cerca)
+* Capturar Munición
+* Capturar `Domination Points`
+* Defender `Domination Points`
+* Huir (requiere un enemigo cerca)
 
 
+Se implementaron varios agentes reactivos combinando estas acciones.
+Es de notar que la información de munición es local, a diferencia de los
+`Domination Points` que es global, por lo tanto en el caso de los agentes
+reactivos solo capturan munición si está cerca de estos.
+El mejor resultado lo obtuvo ordenando la prioridad de la siguiente manera:
+
+
+* Atacar (requiere munición) (requiere un enemigo cerca)
+* Huir (requiere un enemigo cerca)
+* Capturar Munición
+* Capturar `Domination Points`
+* Defender `Domination Points`
+
+Luego se implementó un agente pro-activo sobre estas mismas acciones,
+cuya principales ventaja es la posibilidad de compartir información y por
+tanto que 2 agentes no intenten ir por la misma munición, pues solo 1
+puede obtenerla, compartir información acerca de la posición de la munición, etc.
+A pesar de esto los agentes pro-activos tienden a comportarse peor.
+
+
+## Discusión
+
+De los agentes programados el mejor comportamiento lo presento el pro-activo, con
+la configuración antes descrita. También se experimento con equipos mixto, que mejoraban
+los resultados de los agentes pro-activos, pero eran peores a los de agentes reactivos.
+
+Otra consideración importante es el mapa, sobre todo con los agentes pro-activos sucede
+que en ciertos mapas ganan en pocos turnos y sin mucha competencia, pero en otros 
+pierde con una probabilidad cerca de 50%. En detalle si la partida se extiende más de
+200 turnos es probable que dure entre 2000 y 3000 turnos, con mucha fluctuación de la puntuación.
+
+En conclusión falta un análisis más detallado de la influencia del mapa en el juego y 
+una revisión de la estrategia e implementación de los agentes pro-activos.
